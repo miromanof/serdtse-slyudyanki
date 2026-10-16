@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#073b4c">
+    <meta name="description" content="Мобильный аудиогид по восьми точкам Слюдянки">
+    <title>Слюдянка · Аудиомаршрут</title>
+    <link rel="preconnect" href="https://maps.google.com">
+    <link rel="stylesheet" href="./styles.css?v=layout-5">
+    <link rel="stylesheet" href="./glass.css?v=render-fix-2">
+    <link rel="preload" href="./assets/Arkhip-Regular.ttf" as="font" type="font/ttf" crossorigin>
+    <link rel="stylesheet" href="./mobile.css?v=release-30">
+  </head>
+  <body>
+    <div class="start-screen" data-start-screen>
+      <div class="start-screen__wash"></div>
+      <main class="start-card">
+        <img class="start-partner-logo" src="./assets/baikal-shore-logo.png" alt="Байкальский берег надежды" width="180" height="40">
+        <h1 aria-label="СЕРДЦЕ СЛЮДЯНКИ"><span class="start-title-line">СЕРДЦЕ <img class="start-logo" src="./assets/logo-transparent.png" alt="" width="76" height="76"></span><span class="start-title-line">СЛЮДЯНКИ</span></h1>
+        <button class="button button--primary button--large" type="button" data-start-action>Начать экскурсию</button>
+      </main>
+    </div>
+
+    <div class="app" data-app hidden>
+      <header class="topbar">
+        <a class="brand" href="#top" aria-label="К началу страницы">
+          <span class="brand__mark" aria-hidden="true"><img src="./assets/logo-transparent.png" alt="" width="38" height="38"></span>
+          <span><strong>Сердце<br>Слюдянки</strong></span>
+        </a>
+      </header>
+
+      <main id="top" class="layout">
+        <section class="guide-column" aria-labelledby="current-title">
+          <div class="progress-wrap" aria-label="Прогресс экскурсии">
+            <div class="progress-copy"><span data-progress-label>Остановка 1 из 8</span><span data-progress-percent>12%</span></div>
+            <div class="progress-track"><span data-progress-bar></span></div>
+          </div>
+
+          <article class="stop-card">
+            <div class="stop-card__number" data-stop-number>01</div>
+            <h2 id="current-title" data-stop-title>Водонапорная Башня</h2>
+
+            <div class="audio-panel" data-stop-player aria-live="polite"></div>
+
+            <button class="button button--primary" type="button" data-primary-action>Перейти к следующей точке <span aria-hidden="true">→</span></button>
+          </article>
+
+          <aside class="map-column" aria-label="Навигация по маршруту">
+            <div class="map-card">
+              <div id="map" class="map" aria-label="Карта маршрута"></div>
+              <div class="map-status" data-location-status aria-live="polite" hidden></div>
+            </div>
+          </aside>
+
+          <section class="route" aria-labelledby="route-heading">
+            <div class="section-heading">
+              <div><h2 id="route-heading">Маршрут экскурсии</h2></div>
+            </div>
+            <ol class="route-list" data-route-list></ol>
+          </section>
+        </section>
+
+      </main>
+    </div>
+
+    <section class="start-screen finish-screen" data-finish-screen aria-labelledby="finish-title" hidden>
+      <div class="start-screen__wash"></div>
+      <div class="start-card">
+        <img class="start-partner-logo" src="./assets/baikal-shore-logo.png" alt="Байкальский берег надежды" width="180" height="40">
+        <h2 id="finish-title" tabindex="-1">СПАСИБО<br>ЗА ПРОГУЛКУ!</h2>
+      </div>
+    </section>
+    <noscript>Для работы аудиогида необходимо включить JavaScript.</noscript>
+    <script type="module" src="./app.js?v=release-24"></script>
+  </body>
+</html>
+
