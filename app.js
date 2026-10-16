@@ -1,7 +1,7 @@
 import { STOPS } from './data.js?v=audio-2';
 import { getAudioViewModel } from './audio-view.js';
 import { canOpenStop } from './guide-state.js';
-import { createGuideMap } from './map.js?v=route-label-10';
+import { createGuideMap } from './map.js?v=fast-map-11';
 import { buildGoogleWalkingUrl, buildYandexWalkingUrl, requestVisitorLocation } from './navigation.js';
 
 export function createInitialState(progress = 0) {
@@ -217,7 +217,7 @@ function bootstrap() {
     app.hidden = false;
     renderGuide();
     try {
-    guideMap = createGuideMap(document.querySelector('#map'), STOPS, undefined, (status) => {
+    guideMap ??= createGuideMap(document.querySelector('#map'), STOPS, undefined, (status) => {
       state = { ...state, locationStatus: status };
       locationStatus.textContent = locationCopy(status);
     });
@@ -230,6 +230,7 @@ function bootstrap() {
   });
 
   primaryAction.addEventListener('click', () => {
+    const previousScrollY = window.scrollY;
     state = completeCurrentStage(state);
     if (state.completed) {
       stopPlayer.querySelector('audio')?.pause();
@@ -240,8 +241,11 @@ function bootstrap() {
       return;
     }
     renderGuide();
-    document.querySelector('.stop-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.scrollTo({ top: previousScrollY, behavior: 'instant' });
   });
+  // Warm up the first map while the visitor is on the welcome screen.
+  try { guideMap = createGuideMap(document.querySelector('#map'), STOPS); }
+  catch { guideMap = null; }
 }
 
 if (typeof document !== 'undefined') bootstrap();
