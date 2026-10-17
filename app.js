@@ -50,7 +50,7 @@ function audioMarkup(container, source, kind) {
     const audio = document.createElement('audio');
     audio.controls = true;
     audio.setAttribute('controlsList', 'nodownload');
-    audio.preload = 'metadata';
+    audio.preload = 'auto';
     audio.src = view.source;
     audio.setAttribute('aria-label', view.label);
     const errorText = document.createElement('span');
@@ -178,8 +178,10 @@ function bootstrap() {
       stopTitle.replaceChildren(firstLine, document.createElement('br'), document.createTextNode('церковь'));
     }
     progressLabel.textContent = state.completed ? 'Маршрут пройден' : `Остановка ${displayed} из ${STOPS.length}`;
-    progressPercent.textContent = `${state.completed ? 100 : Math.round((displayed / STOPS.length) * 100)}%`;
-    progressBar.style.width = `${state.completed ? 100 : (displayed / STOPS.length) * 100}%`;
+    const completedStops = state.completed ? STOPS.length : state.progress + (state.stage === 'transition' && state.activeIndex === state.progress ? 1 : 0);
+    const progressValue = (completedStops / STOPS.length) * 100;
+    progressPercent.textContent = `${Math.round(progressValue)}%`;
+    progressBar.style.width = `${progressValue}%`;
     const isTransition = state.stage === 'transition';
     stopPlayer.classList.toggle('audio-panel--transition', isTransition);
     audioMarkup(stopPlayer, isTransition ? stop.transitionAudio : stop.stopAudio, isTransition ? 'transition' : 'stop');
