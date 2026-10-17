@@ -1,6 +1,7 @@
 import { STOPS } from './data.js?v=audio-2';
 import { getAudioViewModel } from './audio-view.js';
 import { canOpenStop } from './guide-state.js';
+import { readSession, saveSession } from './session.js';
 import { createGuideMap } from './map.js?v=fast-map-11';
 import { buildGoogleWalkingUrl, buildYandexWalkingUrl, requestVisitorLocation } from './navigation.js';
 
@@ -110,8 +111,27 @@ function bootstrap() {
   const navigationFallback = document.querySelector('[data-navigation-fallback]');
   const orientationNote = document.querySelector('[data-orientation-note]');
 
-  let state = createInitialState();
+  let storage = null;
+  try { storage = window.localStorage; } catch { /* Continue without persistence. */ }
+  const saved = readSession(storage);
+  let state = { ...createInitialState(), ...saved };
+  let pendingAudioTime = saved?.audioTime ?? 0;
   let guideMap = null;
+
+  function persist() {
+    const audio = stopPlayer.querySelector('audio');
+    saveSession(storage, state, audio?.readyState >= 1 ? audio.currentTime : pendingAudioTime);
+  }
+  function showFinish() {
+    stopPlayer.querySelector('audio')?.pause();
+    app.hidden = true;
+    startScreen.hidden = true;
+    document.querySelector('[data-finish-screen]').hidden = false;
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    document.querySelector('#finish-title').focus({ preventScroll: true });
+  }
+  window.addEventListener('pagehide', persist);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) persist(); });
 
   function destinationForCurrent() {
     return getTransitionTarget(state.activeIndex);
@@ -132,6 +152,8 @@ function bootstrap() {
       button.querySelector('strong').textContent = stop.title;
       button.addEventListener('click', () => {
         state = selectStop(index, state);
+        pendingAudioTime = 0;
+        saveSession(storage, state, 0);
         renderGuide();
       });
       item.append(button);
@@ -185,6 +207,19 @@ function bootstrap() {
     const isTransition = state.stage === 'transition';
     stopPlayer.classList.toggle('audio-panel--transition', isTransition);
     audioMarkup(stopPlayer, isTransition ? stop.transitionAudio : stop.stopAudio, isTransition ? 'transition' : 'stop');
+    const audio = stopPlayer.querySelector('audio');
+    if (audio && !audio.dataset.sessionBound) {
+      audio.dataset.sessionBound = 'true';
+      const resumeTime = pendingAudioTime;
+      const restoreTime = () => {
+        if (resumeTime > 0 && Number.isFinite(audio.duration)) audio.currentTime = Math.min(resumeTime, Math.max(0, audio.duration - .1));
+      };
+      if (audio.readyState >= 1) restoreTime();
+      else audio.addEventListener('loadedmetadata', restoreTime, { once: true });
+      for (const event of ['timeupdate', 'pause', 'seeked']) audio.addEventListener(event, () => {
+        if (stopPlayer.querySelector('audio') === audio) persist();
+      });
+    }
     primaryAction.disabled = state.completed;
     primaryAction.textContent = state.completed
       ? 'Экскурсия завершена'
@@ -215,6 +250,7 @@ function bootstrap() {
   }
 
   startAction.addEventListener('click', () => {
+    saveSession(storage, state, pendingAudioTime);
     startScreen.hidden = true;
     app.hidden = false;
     renderGuide();
@@ -234,12 +270,10 @@ function bootstrap() {
   primaryAction.addEventListener('click', () => {
     const previousScrollY = window.scrollY;
     state = completeCurrentStage(state);
+    pendingAudioTime = 0;
+    saveSession(storage, state, 0);
     if (state.completed) {
-      stopPlayer.querySelector('audio')?.pause();
-      app.hidden = true;
-      document.querySelector('[data-finish-screen]').hidden = false;
-      window.scrollTo({ top: 0, behavior: 'instant' });
-      document.querySelector('#finish-title').focus({ preventScroll: true });
+      showFinish();
       return;
     }
     renderGuide();
@@ -248,6 +282,8 @@ function bootstrap() {
   // Warm up the first map while the visitor is on the welcome screen.
   try { guideMap = createGuideMap(document.querySelector('#map'), STOPS); }
   catch { guideMap = null; }
+  if (saved?.completed) showFinish();
+  else if (saved) startAction.click();
 }
 
 if (typeof document !== 'undefined') bootstrap();
