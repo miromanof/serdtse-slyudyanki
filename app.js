@@ -1,4 +1,4 @@
-import { STOPS } from './data.js?v=audio-2';
+import { STOPS } from './data.js?v=stop5-20261023';
 import { getAudioViewModel } from './audio-view.js';
 import { canOpenStop } from './guide-state.js';
 import { readSession, saveSession } from './session.js';
